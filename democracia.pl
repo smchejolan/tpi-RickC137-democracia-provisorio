@@ -169,7 +169,7 @@ partidoLeGanaA(PartidoA,PartidoB,Provincia):-
     intencionDeVotoEn(Provincia,PartidoA,PorcentajeA),
     intencionDeVotoEn(Provincia,PartidoB,PorcentajeB),   
     partidoDiferente(PartidoA,PartidoB),
-    PorcentajeA >= PorcentajeB.
+    PorcentajeA > PorcentajeB.
 partidoLeGanaA(PartidoA,PartidoB,Provincia):-
     sePostula(PartidoA,Provincia),
     not(sePostula(PartidoB,Provincia)).
@@ -182,10 +182,10 @@ esElMasJovenDeSuPartido(Candidato):-
 esMasJoven(CandidatoA,CandidatoB):-
     edad(CandidatoA,EdadA),
     edad(CandidatoB,EdadB),    
-    CandidatoA \= CandidatoB,
+    distintosCandidatos(CandidatoA,CandidatoB),
     EdadA < EdadB.
-esMasJoven(CandidatoA,CandidatoB):-
-    CandidatoA = CandidatoB.
+esMasJoven(Candidato,Candidato).
+
 
 /*  Se puede estar seguro que frank es el unico gran candidato usando una consulta existencial y viendo
     que es el unico individuo que cumple. Esta relacionado con el cocepto de unificacion.
