@@ -10,6 +10,10 @@ candidato(catherine,rojo).
 candidato(seth,amarillo).
 candidato(heather,amarillo).
 
+partido(rojo).
+partido(azul).
+partido(amarillo).
+
 %edad(Nombre,Edad).
 edad(frank,50).
 edad(claire,52).
@@ -19,7 +23,7 @@ edad(jackie,28).
 edad(linda,30).
 %no se conoce la edad de seth por lo que no se agrega al predicado edad
 edad(catherine,59).
-%edad(heather,60).
+edad(heather,60).
 
 %sePostula(Partido,Provincia).
 sePostula(azul,buenosAires).
@@ -118,29 +122,75 @@ intencionDeVotoEn(misiones, rojo, 90).
 intencionDeVotoEn(misiones, azul, 0).
 intencionDeVotoEn(misiones, amarillo, 0).
 
-
 leGanaA(CandidatoA,CandidatoB,Provincia):-
-    candidatoGanadorSePresentaEn(CandidatoA,PartidoA,Provincia),
-    candidato(CandidatoB,PartidoB),
-    not(igualesPartidos(PartidoA,PartidoB)),
-    not(sePostula(PartidoB,Provincia)).    
+    candidatoSePresentaEn(CandidatoA,_,Provincia),
+    not(candidatoSePresentaEn(CandidatoB,_,Provincia)).   
 leGanaA(CandidatoA,CandidatoB,Provincia):-
-    candidatoGanadorSePresentaEn(CandidatoA,PartidoA,Provincia),
-    candidato(CandidatoB,PartidoB),
-    not(igualesPartidos(PartidoA,PartidoB)),
-    sePostula(PartidoB,Provincia),
-    intencionDeVotoEn(Provincia,PartidoA,PorcentajeA),
-    intencionDeVotoEn(Provincia,PartidoB,PorcentajeB),
-    PorcentajeA > PorcentajeB.
+    candidatoSePresentaEn(CandidatoA,PartidoA,Provincia),
+    candidatoSePresentaEn(CandidatoB,PartidoB,Provincia),
+    distintosCandidatos(CandidatoA,CandidatoB),
+    partidoLeGanaA(PartidoA,PartidoB,Provincia).
 leGanaA(CandidatoA,CandidatoB,Provincia):-
-    candidatoGanadorSePresentaEn(CandidatoA,PartidoA,Provincia),
-    candidato(CandidatoB,PartidoB),
-    igualesPartidos(PartidoA,PartidoB).
+    candidatoSePresentaEn(CandidatoA,Partido,Provincia),
+    candidatoSePresentaEn(CandidatoB,Partido,Provincia),  
+    distintosCandidatos(CandidatoA,CandidatoB).
 
-igualesPartidos(PartidoA,PartidoB):-
-    PartidoA = PartidoB.
+distintosCandidatos(CandidatoA,CandidatoB):-
+    candidato(CandidatoA,_),
+    candidato(CandidatoB,_),
+    CandidatoA \= CandidatoB.
 
-candidatoGanadorSePresentaEn(Candidato,Partido,Provincia):-
+candidatoSePresentaEn(Candidato,Partido,Provincia):-
     candidato(Candidato,Partido),
     sePostula(Partido,Provincia).
 
+%4)
+elGranCandidato(Candidato):-
+    candidato(Candidato,Partido),
+    esElMasJovenDeSuPartido(Candidato),
+    ganaEnTodasLasProvincias(Partido).
+
+ganaEnTodasLasProvincias(Partido):-
+    partido(Partido),
+    forall(sePostula(Partido,Provincia),ganaEnEsaProvincia(Partido,Provincia)).
+
+ganaEnEsaProvincia(Partido,Provincia):-
+    sePostula(Partido,Provincia),
+    forall(partidoDiferente(Partido,PartidoB),partidoLeGanaA(Partido,PartidoB,Provincia)).
+
+partidoDiferente(PartidoA,PartidoB):-
+    partido(PartidoA),
+    partido(PartidoB),
+    PartidoA \= PartidoB.
+
+partidoLeGanaA(PartidoA,PartidoB,Provincia):-
+    sePostula(PartidoA,Provincia),
+    sePostula(PartidoB,Provincia),
+    intencionDeVotoEn(Provincia,PartidoA,PorcentajeA),
+    intencionDeVotoEn(Provincia,PartidoB,PorcentajeB),   
+    partidoDiferente(PartidoA,PartidoB),
+    PorcentajeA >= PorcentajeB.
+partidoLeGanaA(PartidoA,PartidoB,Provincia):-
+    sePostula(PartidoA,Provincia),
+    not(sePostula(PartidoB,Provincia)).
+
+esElMasJovenDeSuPartido(Candidato):-
+    candidato(Candidato,Partido),
+    forall(candidato(CandidatoB,Partido),esMasJoven(Candidato,CandidatoB)).
+%No se puede encontrar el mas joven del partido amarillo porque seth no tiene definida una edad.
+
+esMasJoven(CandidatoA,CandidatoB):-
+    edad(CandidatoA,EdadA),
+    edad(CandidatoB,EdadB),    
+    CandidatoA \= CandidatoB,
+    EdadA < EdadB.
+esMasJoven(CandidatoA,CandidatoB):-
+    CandidatoA = CandidatoB.
+
+/*  Se puede estar seguro que frank es el unico gran candidato usando una consulta existencial y viendo
+    que es el unico individuo que cumple. Esta relacionado con el cocepto de unificacion.
+    La consulta seria esta:
+    ?- elGranCandidato(Candidato).
+    Candidato = frank ;
+    false.
+    y quiere decir que en efecto frank es el unico gran candidato.*/
